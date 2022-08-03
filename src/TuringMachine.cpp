@@ -31,9 +31,9 @@ TuringMachine::TuringMachine()
 
       switch (string(f[0].at(1))[0])
       {
-      case '0': head.value = Value::Zero; break;
-      case '1': head.value = Value::One; break;
-      case '_': head.value = Value::Blank; break;
+        case '0': head.value = Value::Zero; break;
+        case '1': head.value = Value::One; break;
+        case '_': head.value = Value::Blank; break;
       };
 
       FunctionBody body;
@@ -41,15 +41,15 @@ TuringMachine::TuringMachine()
 
       switch (string(f[1].at(1))[0])
       {
-      case '0': body.newValue = Value::Zero; break;
-      case '1': body.newValue = Value::One; break;
-      case '_': body.newValue = Value::Blank; break;
+        case '0': body.newValue = Value::Zero; break;
+        case '1': body.newValue = Value::One; break;
+        case '_': body.newValue = Value::Blank; break;
       };
 
       switch (string(f[1].at(2))[0])
       {
-      case 'R': body.moveHead = Movement::Right; break;
-      case 'L': body.moveHead = Movement::Left; break;
+        case 'R': body.moveHead = Movement::Right; break;
+        case 'L': body.moveHead = Movement::Left; break;
       };
 
       m_deltas[head] = body;
@@ -70,9 +70,9 @@ TuringMachine::TuringMachine()
 
       switch (value)
       {
-      case '0': m_tape[tapeStart++].value = Value::Zero; break;
-      case '1': m_tape[tapeStart++].value = Value::One; break;
-      case '_': m_tape[tapeStart++].value = Value::Blank; break;
+        case '0': m_tape[tapeStart++].value = Value::Zero; break;
+        case '1': m_tape[tapeStart++].value = Value::One; break;
+        case '_': m_tape[tapeStart++].value = Value::Blank; break;
       };
     }
   }
@@ -131,9 +131,9 @@ bool TuringMachine::OnUserUpdate(float fElapsedTime)
 
     switch (cell.value)
     {
-    case Value::Blank: ch = '_'; break;
-    case Value::Zero:  ch = '0'; break;
-    case Value::One:   ch = '1'; break;
+      case Value::Blank: ch = '_'; break;
+      case Value::Zero:  ch = '0'; break;
+      case Value::One:   ch = '1'; break;
     };
 
     FillRect(tapeDrawX + (cellWidth * id) + 1, tapeDrawY + 1, cellWidth - 1, cellHeight - 1, fillColor);
@@ -192,26 +192,26 @@ void TuringMachine::Step()
 
   switch (head.value)
   {
-  case Value::Blank: s = '_'; break;
-  case Value::Zero:  s = '0'; break;
-  case Value::One:   s = '1'; break;
+    case Value::Blank: s = '_'; break;
+    case Value::Zero:  s = '0'; break;
+    case Value::One:   s = '1'; break;
   };
 
   char ns;
 
   switch (body.newValue)
   {
-  case Value::Blank: ns = '_'; break;
-  case Value::Zero:  ns = '0'; break;
-  case Value::One:   ns = '1'; break;
+    case Value::Blank: ns = '_'; break;
+    case Value::Zero:  ns = '0'; break;
+    case Value::One:   ns = '1'; break;
   };
 
   char d;
 
   switch (body.moveHead)
   {
-  case Movement::Left: d = 'L'; break;
-  case Movement::Right: d = 'R'; break;
+    case Movement::Left: d = 'L'; break;
+    case Movement::Right: d = 'R'; break;
   };
 
   string functionStr = "d(" + string(1, head.state) + ", " + string(1, s) + ") = (" + string(1, body.newState) + ", " + string(1, ns) + ", " + string(1, d) + ")";
