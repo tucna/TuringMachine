@@ -60,14 +60,19 @@ private:
     Movement moveHead;
   };
 
+  void Step();
+
   std::array<Cell, 20> m_tape;
 
   std::string m_programName;
   std::string m_states;
+  std::string m_function;
 
   std::map<FunctionHead, FunctionBody> m_deltas;
 
   uint8_t m_headPos = 0;
+
+  char m_currentState = '0';
 
   bool m_showUI = false;
 };

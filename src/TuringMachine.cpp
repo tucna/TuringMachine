@@ -31,9 +31,9 @@ TuringMachine::TuringMachine()
 
       switch (string(f[0].at(1))[0])
       {
-        case '0': head.value = Value::Zero; break;
-        case '1': head.value = Value::One; break;
-        case '_': head.value = Value::Blank; break;
+      case '0': head.value = Value::Zero; break;
+      case '1': head.value = Value::One; break;
+      case '_': head.value = Value::Blank; break;
       };
 
       FunctionBody body;
@@ -41,15 +41,15 @@ TuringMachine::TuringMachine()
 
       switch (string(f[1].at(1))[0])
       {
-        case '0': body.newValue = Value::Zero; break;
-        case '1': body.newValue = Value::One; break;
-        case '_': body.newValue = Value::Blank; break;
+      case '0': body.newValue = Value::Zero; break;
+      case '1': body.newValue = Value::One; break;
+      case '_': body.newValue = Value::Blank; break;
       };
 
       switch (string(f[1].at(2))[0])
       {
-        case 'R': body.moveHead = Movement::Right; break;
-        case 'L': body.moveHead = Movement::Left; break;
+      case 'R': body.moveHead = Movement::Right; break;
+      case 'L': body.moveHead = Movement::Left; break;
       };
 
       m_deltas[head] = body;
@@ -70,9 +70,9 @@ TuringMachine::TuringMachine()
 
       switch (value)
       {
-        case '0': m_tape[tapeStart++].value = Value::Zero; break;
-        case '1': m_tape[tapeStart++].value = Value::One; break;
-        case '_': m_tape[tapeStart++].value = Value::Blank; break;
+      case '0': m_tape[tapeStart++].value = Value::Zero; break;
+      case '1': m_tape[tapeStart++].value = Value::One; break;
+      case '_': m_tape[tapeStart++].value = Value::Blank; break;
       };
     }
   }
@@ -115,10 +115,10 @@ bool TuringMachine::OnUserUpdate(float fElapsedTime)
   DrawString(22, 63, m_states, tDX::DARK_GREY);
 
   DrawString(15, 180, "Current state");
-  DrawString(22, 193, "0", tDX::DARK_GREY);
+  DrawString(22, 193, string(1, m_currentState), tDX::DARK_GREY);
 
   DrawString(180, 180, "Current transition function");
-  DrawString(187, 193, "[0,0] [0,0,R]", tDX::DARK_GREY);
+  DrawString(187, 193, m_function, tDX::DARK_GREY);
 
   m_tape[m_headPos].active = true;
 
@@ -131,9 +131,9 @@ bool TuringMachine::OnUserUpdate(float fElapsedTime)
 
     switch (cell.value)
     {
-      case Value::Blank: ch = '_'; break;
-      case Value::Zero:  ch = '0'; break;
-      case Value::One:   ch = '1'; break;
+    case Value::Blank: ch = '_'; break;
+    case Value::Zero:  ch = '0'; break;
+    case Value::One:   ch = '1'; break;
     };
 
     FillRect(tapeDrawX + (cellWidth * id) + 1, tapeDrawY + 1, cellWidth - 1, cellHeight - 1, fillColor);
@@ -145,6 +145,7 @@ bool TuringMachine::OnUserUpdate(float fElapsedTime)
 
   if (GetKey(tDX::Key::RIGHT).bPressed) m_headPos++;
   if (GetKey(tDX::Key::LEFT).bPressed) m_headPos--;
+  if (GetKey(tDX::Key::SPACE).bPressed) Step();
 
   const uint16_t headPointPos = tapeDrawX + (cellWidth * m_headPos) + (cellWidth / 2);
 
@@ -169,4 +170,51 @@ bool TuringMachine::OnUserDestroy()
   ImGui::DestroyContext();
 
   return true;
+}
+
+void TuringMachine::Step()
+{
+  FunctionHead head;
+  head.state = m_currentState;
+  head.value = m_tape[m_headPos].value;
+
+  FunctionBody body = m_deltas[head];
+
+  m_tape[m_headPos].value = body.newValue;
+  m_currentState = body.newState;
+
+  if (body.moveHead == Movement::Right)
+    m_headPos++;
+  else
+    m_headPos--;
+
+  char s;
+
+  switch (head.value)
+  {
+  case Value::Blank: s = '_'; break;
+  case Value::Zero:  s = '0'; break;
+  case Value::One:   s = '1'; break;
+  };
+
+  char ns;
+
+  switch (body.newValue)
+  {
+  case Value::Blank: ns = '_'; break;
+  case Value::Zero:  ns = '0'; break;
+  case Value::One:   ns = '1'; break;
+  };
+
+  char d;
+
+  switch (body.moveHead)
+  {
+  case Movement::Left: d = 'L'; break;
+  case Movement::Right: d = 'R'; break;
+  };
+
+  string functionStr = "d(" + string(1, head.state) + ", " + string(1, s) + ") = (" + string(1, body.newState) + ", " + string(1, ns) + ", " + string(1, d) + ")";
+
+  m_function = functionStr;
 }
