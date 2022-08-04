@@ -177,8 +177,8 @@ bool TuringMachine::OnUserUpdate(float fElapsedTime)
 
   m_tape[m_headPos].active = false;
 
-  if (GetKey(tDX::Key::RIGHT).bPressed) m_headPos++;
-  if (GetKey(tDX::Key::LEFT).bPressed) m_headPos--;
+  if (GetKey(tDX::Key::F1).bPressed) m_showUI = !m_showUI;
+
 
   if (GetKey(tDX::Key::SPACE).bPressed && m_currentBody.newState != 'H')
   {
@@ -207,6 +207,58 @@ bool TuringMachine::OnUserUpdateEndFrame(float fElapsedTime)
 {
   if (!m_showUI)
     return true;
+
+  // Start the Dear ImGui frame
+  ImGui_ImplDX11_NewFrame();
+  ImGui_ImplWin32_NewFrame();
+  ImGui::NewFrame();
+
+  ImGui::Begin("Transition functions");
+
+  char lastState = m_deltas.begin()->first.state;
+
+  for (const auto& f : m_deltas)
+  {
+    char s;
+
+    switch (f.first.value)
+    {
+      case Value::Blank: s = '_'; break;
+      case Value::Zero:  s = '0'; break;
+      case Value::One:   s = '1'; break;
+    };
+
+    char ns;
+
+    switch (f.second.newValue)
+    {
+      case Value::Blank: ns = '_'; break;
+      case Value::Zero:  ns = '0'; break;
+      case Value::One:   ns = '1'; break;
+    };
+
+    char d;
+
+    switch (f.second.moveHead)
+    {
+      case Movement::Left: d = 'L'; break;
+      case Movement::Right: d = 'R'; break;
+    };
+
+    if (lastState != f.first.state)
+    {
+      lastState = f.first.state;
+      ImGui::Separator();
+    }
+
+    string line = "d(" + string(1, f.first.state) + ", " + string(1, s) + ") = (" + string(1, f.second.newState) + ", " + string(1, ns) + ", " + string(1, d) + ")";
+    ImGui::Text(line.c_str());
+  }
+
+  ImGui::End();
+
+  ImGui::Render();
+  ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
   return true;
 }
