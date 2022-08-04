@@ -60,10 +60,6 @@ TuringMachine::TuringMachine()
   ImGui::StyleColorsDark();
 }
 
-TuringMachine::~TuringMachine()
-{
-}
-
 bool TuringMachine::OnUserCreate()
 {
   // Setup Platform/Renderer bindings
@@ -75,44 +71,6 @@ bool TuringMachine::OnUserCreate()
 
 bool TuringMachine::OnUserUpdate(float fElapsedTime)
 {
-  static constexpr uint8_t cellWidth = 17;
-  static constexpr uint8_t cellHeight = 20;
-  static const tDX::Pixel cellColor = tDX::DARK_BLUE;
-  static const tDX::Pixel activeCellColor = tDX::DARK_RED;
-  static const uint16_t tapeDrawX = (ScreenWidth() - m_tape.size() * cellWidth) / 2;
-  static const uint16_t tapeDrawY = ScreenHeight() - cellHeight - 50;
-
-  Clear(tDX::BLACK);
-
-  DrawString(15, 15, "Program");
-  DrawString(22, 28, m_programName, tDX::DARK_GREY);
-
-  DrawString(15, 50, "States");
-  DrawString(22, 63, m_states, tDX::DARK_GREY);
-
-  DrawString(15, 180, "Current state");
-  DrawString(22, 193, string(1, m_currentState), tDX::DARK_GREY);
-
-  string functionStr = "d(" + string(1, m_currentHead.state) + ", " + ValueToStr(m_currentHead.value) + ") = (" +
-    string(1, m_currentBody.newState) + ", " + ValueToStr(m_currentBody.newValue) + ", " + MovementToStr(m_currentBody.moveHead) + ")";
-
-  DrawString(180, 180, "Current transition function");
-  DrawString(187, 193, functionStr, tDX::DARK_GREY);
-
-  m_tape[m_headPos].active = true;
-
-  for (uint8_t id = 0; id < m_tape.size(); id++)
-  {
-    const Cell& cell = m_tape[id];
-    const tDX::Pixel& fillColor = cell.active ? activeCellColor : cellColor;
-
-    FillRect(tapeDrawX + (cellWidth * id) + 1, tapeDrawY + 1, cellWidth - 1, cellHeight - 1, fillColor);
-    DrawRect(tapeDrawX + (cellWidth * id), tapeDrawY, cellWidth, cellHeight, tDX::DARK_GREY);
-    DrawString(tapeDrawX + (cellWidth * id) + 5, tapeDrawY + 10, ValueToStr(cell.value));
-  }
-
-  m_tape[m_headPos].active = false;
-
   if (GetKey(tDX::Key::F1).bPressed) m_showUI = !m_showUI;
 
   if (GetKey(tDX::Key::SPACE).bPressed && m_currentBody.newState != 'H')
@@ -120,20 +78,8 @@ bool TuringMachine::OnUserUpdate(float fElapsedTime)
     ExecuteInstruction();
     ReadInstruction();
   }
-  else if (m_currentBody.newState == 'H')
-  {
-    DrawString(193, 120, "HALT", tDX::DARK_GREEN);
-    DrawRect(130, 105, 156, 36);
-  }
-  else
-  {
-    DrawString(145, 120, "SPACEBAR to step");
-    DrawRect(130, 105, 156, 36);
-  }
 
-  const uint16_t headPointPos = tapeDrawX + (cellWidth * m_headPos) + (cellWidth / 2);
-
-  FillTriangle(headPointPos - 2, tapeDrawY + cellHeight + 13, headPointPos, tapeDrawY + cellHeight + 5, headPointPos + 2, tapeDrawY + cellHeight + 13, activeCellColor);
+  DrawScreen();
 
   return true;
 }
@@ -193,6 +139,62 @@ void TuringMachine::ExecuteInstruction()
     m_headPos++;
   else
     m_headPos--;
+}
+
+void TuringMachine::DrawScreen()
+{
+  static constexpr uint8_t cellWidth = 17;
+  static constexpr uint8_t cellHeight = 20;
+  static const tDX::Pixel cellColor = tDX::DARK_BLUE;
+  static const tDX::Pixel activeCellColor = tDX::DARK_RED;
+  static const uint16_t tapeDrawX = (ScreenWidth() - m_tape.size() * cellWidth) / 2;
+  static const uint16_t tapeDrawY = ScreenHeight() - cellHeight - 50;
+
+  Clear(tDX::BLACK);
+
+  DrawString(15, 15, "Program");
+  DrawString(22, 28, m_programName, tDX::DARK_GREY);
+
+  DrawString(15, 50, "States");
+  DrawString(22, 63, m_states, tDX::DARK_GREY);
+
+  DrawString(15, 180, "Current state");
+  DrawString(22, 193, string(1, m_currentState), tDX::DARK_GREY);
+
+  string functionStr = "d(" + string(1, m_currentHead.state) + ", " + ValueToStr(m_currentHead.value) + ") = (" +
+    string(1, m_currentBody.newState) + ", " + ValueToStr(m_currentBody.newValue) + ", " + MovementToStr(m_currentBody.moveHead) + ")";
+
+  DrawString(180, 180, "Current transition function");
+  DrawString(187, 193, functionStr, tDX::DARK_GREY);
+
+  m_tape[m_headPos].active = true;
+
+  for (uint8_t id = 0; id < m_tape.size(); id++)
+  {
+    const Cell& cell = m_tape[id];
+    const tDX::Pixel& fillColor = cell.active ? activeCellColor : cellColor;
+
+    FillRect(tapeDrawX + (cellWidth * id) + 1, tapeDrawY + 1, cellWidth - 1, cellHeight - 1, fillColor);
+    DrawRect(tapeDrawX + (cellWidth * id), tapeDrawY, cellWidth, cellHeight, tDX::DARK_GREY);
+    DrawString(tapeDrawX + (cellWidth * id) + 5, tapeDrawY + 10, ValueToStr(cell.value));
+  }
+
+  m_tape[m_headPos].active = false;
+
+  const uint16_t headPointPos = tapeDrawX + (cellWidth * m_headPos) + (cellWidth / 2);
+
+  FillTriangle(headPointPos - 2, tapeDrawY + cellHeight + 13, headPointPos, tapeDrawY + cellHeight + 5, headPointPos + 2, tapeDrawY + cellHeight + 13, activeCellColor);
+
+  if (m_currentBody.newState == 'H')
+  {
+    DrawString(193, 120, "HALT", tDX::DARK_GREEN);
+    DrawRect(130, 105, 156, 36);
+  }
+  else
+  {
+    DrawString(145, 120, "SPACEBAR to step");
+    DrawRect(130, 105, 156, 36);
+  }
 }
 
 void TuringMachine::ReadInstruction()
