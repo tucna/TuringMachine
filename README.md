@@ -2,7 +2,7 @@
 Program to process and visualize Turing machine.
 
 <p align="center">  
-  <img src="doc/3.jpg">
+  <img src="doc/3.jpg" width="700px">
 </p>
 
 The project is built on [tPixelGameEngine](https://github.com/tucna/tPixelGameEngine) and [Dear ImGui](https://github.com/ocornut/imgui) for debug purposes. The debug window shows all delta functions.
@@ -18,6 +18,7 @@ Simulation supports step by step program processing fetched via JSON files. You 
 </p>
 
 # Data input
+Program (δ functions and specifications) are fetched from JSON as demonstrated bellow.
 ```
 {
     "function": "Addition of binary numbers.",
@@ -44,6 +45,14 @@ Simulation supports step by step program processing fetched via JSON files. You 
     ]
 }
 ```
+User must specify function name, states, starting state and the functions. Data are fetched from another JSON which looks as follows.
+```
+{
+    "start_cell": 5,
+    "data": ["1", "0", "1", "_", "0", "1", "1", "0"]
+}
+```
+Starting cell on the tape must be specified together with the data.
 
 # Screenshots
 <p align="center">  
