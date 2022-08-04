@@ -63,11 +63,16 @@ private:
   void ExecuteInstruction();
   void ReadInstruction();
 
+  std::string ValueToStr(const Value& value);
+  std::string MovementToStr(const Movement& movement);
+
+  Value CharToValue(char state);
+  Movement CharToMovement(char movement);
+
   std::array<Cell, 20> m_tape;
 
   std::string m_programName;
   std::string m_states;
-  std::string m_function;
 
   std::map<FunctionHead, FunctionBody> m_deltas;
 

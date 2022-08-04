@@ -28,29 +28,12 @@ TuringMachine::TuringMachine()
     {
       FunctionHead head;
       head.state = string(f[0].at(0))[0];
-
-      switch (string(f[0].at(1))[0])
-      {
-        case '0': head.value = Value::Zero; break;
-        case '1': head.value = Value::One; break;
-        case '_': head.value = Value::Blank; break;
-      };
+      head.value = CharToValue(string(f[0].at(1))[0]);
 
       FunctionBody body;
       body.newState = string(f[1].at(0))[0];
-
-      switch (string(f[1].at(1))[0])
-      {
-        case '0': body.newValue = Value::Zero; break;
-        case '1': body.newValue = Value::One; break;
-        case '_': body.newValue = Value::Blank; break;
-      };
-
-      switch (string(f[1].at(2))[0])
-      {
-        case 'R': body.moveHead = Movement::Right; break;
-        case 'L': body.moveHead = Movement::Left; break;
-      };
+      body.newValue = CharToValue(string(f[1].at(1))[0]);
+      body.moveHead = CharToMovement(string(f[1].at(2))[0]);
 
       m_deltas[head] = body;
     }
@@ -65,16 +48,7 @@ TuringMachine::TuringMachine()
     m_headPos = tapeStart;
 
     for (const string& ch : data["data"])
-    {
-      char value = ch[0];
-
-      switch (value)
-      {
-        case '0': m_tape[tapeStart++].value = Value::Zero; break;
-        case '1': m_tape[tapeStart++].value = Value::One; break;
-        case '_': m_tape[tapeStart++].value = Value::Blank; break;
-      };
-    }
+      m_tape[tapeStart++].value = CharToValue(ch[0]);
   }
 
   ReadInstruction();
@@ -101,46 +75,14 @@ bool TuringMachine::OnUserCreate()
 
 bool TuringMachine::OnUserUpdate(float fElapsedTime)
 {
-  static const tDX::Pixel cellColor = tDX::DARK_BLUE;
-  static const tDX::Pixel activeCellColor = tDX::DARK_RED;
   static constexpr uint8_t cellWidth = 17;
   static constexpr uint8_t cellHeight = 20;
+  static const tDX::Pixel cellColor = tDX::DARK_BLUE;
+  static const tDX::Pixel activeCellColor = tDX::DARK_RED;
   static const uint16_t tapeDrawX = (ScreenWidth() - m_tape.size() * cellWidth) / 2;
   static const uint16_t tapeDrawY = ScreenHeight() - cellHeight - 50;
 
   Clear(tDX::BLACK);
-
-  // Function draw TODO function
-  char s;
-
-  switch (m_currentHead.value)
-  {
-    case Value::Blank: s = '_'; break;
-    case Value::Zero:  s = '0'; break;
-    case Value::One:   s = '1'; break;
-  };
-
-  char ns;
-
-  switch (m_currentBody.newValue)
-  {
-    case Value::Blank: ns = '_'; break;
-    case Value::Zero:  ns = '0'; break;
-    case Value::One:   ns = '1'; break;
-  };
-
-  char d;
-
-  switch (m_currentBody.moveHead)
-  {
-    case Movement::Left: d = 'L'; break;
-    case Movement::Right: d = 'R'; break;
-  };
-
-  string functionStr = "d(" + string(1, m_currentHead.state) + ", " + string(1, s) + ") = (" + string(1, m_currentBody.newState) + ", " + string(1, ns) + ", " + string(1, d) + ")";
-
-  m_function = functionStr;
-  // -------------
 
   DrawString(15, 15, "Program");
   DrawString(22, 28, m_programName, tDX::DARK_GREY);
@@ -151,8 +93,11 @@ bool TuringMachine::OnUserUpdate(float fElapsedTime)
   DrawString(15, 180, "Current state");
   DrawString(22, 193, string(1, m_currentState), tDX::DARK_GREY);
 
+  string functionStr = "d(" + string(1, m_currentHead.state) + ", " + ValueToStr(m_currentHead.value) + ") = (" +
+    string(1, m_currentBody.newState) + ", " + ValueToStr(m_currentBody.newValue) + ", " + MovementToStr(m_currentBody.moveHead) + ")";
+
   DrawString(180, 180, "Current transition function");
-  DrawString(187, 193, m_function, tDX::DARK_GREY);
+  DrawString(187, 193, functionStr, tDX::DARK_GREY);
 
   m_tape[m_headPos].active = true;
 
@@ -161,24 +106,14 @@ bool TuringMachine::OnUserUpdate(float fElapsedTime)
     const Cell& cell = m_tape[id];
     const tDX::Pixel& fillColor = cell.active ? activeCellColor : cellColor;
 
-    string ch = "X";
-
-    switch (cell.value)
-    {
-      case Value::Blank: ch = '_'; break;
-      case Value::Zero:  ch = '0'; break;
-      case Value::One:   ch = '1'; break;
-    };
-
     FillRect(tapeDrawX + (cellWidth * id) + 1, tapeDrawY + 1, cellWidth - 1, cellHeight - 1, fillColor);
     DrawRect(tapeDrawX + (cellWidth * id), tapeDrawY, cellWidth, cellHeight, tDX::DARK_GREY);
-    DrawString(tapeDrawX + (cellWidth * id) + 5, tapeDrawY + 10, ch);
+    DrawString(tapeDrawX + (cellWidth * id) + 5, tapeDrawY + 10, ValueToStr(cell.value));
   }
 
   m_tape[m_headPos].active = false;
 
   if (GetKey(tDX::Key::F1).bPressed) m_showUI = !m_showUI;
-
 
   if (GetKey(tDX::Key::SPACE).bPressed && m_currentBody.newState != 'H')
   {
@@ -219,39 +154,15 @@ bool TuringMachine::OnUserUpdateEndFrame(float fElapsedTime)
 
   for (const auto& f : m_deltas)
   {
-    char s;
-
-    switch (f.first.value)
-    {
-      case Value::Blank: s = '_'; break;
-      case Value::Zero:  s = '0'; break;
-      case Value::One:   s = '1'; break;
-    };
-
-    char ns;
-
-    switch (f.second.newValue)
-    {
-      case Value::Blank: ns = '_'; break;
-      case Value::Zero:  ns = '0'; break;
-      case Value::One:   ns = '1'; break;
-    };
-
-    char d;
-
-    switch (f.second.moveHead)
-    {
-      case Movement::Left: d = 'L'; break;
-      case Movement::Right: d = 'R'; break;
-    };
-
     if (lastState != f.first.state)
     {
       lastState = f.first.state;
       ImGui::Separator();
     }
 
-    string line = "d(" + string(1, f.first.state) + ", " + string(1, s) + ") = (" + string(1, f.second.newState) + ", " + string(1, ns) + ", " + string(1, d) + ")";
+    string line = "d(" + string(1, f.first.state) + ", " + ValueToStr(f.first.value) + ") = (" +
+      string(1, f.second.newState) + ", " + ValueToStr(f.second.newValue) + ", " + MovementToStr(f.second.moveHead) + ")";
+
     ImGui::Text(line.c_str());
   }
 
@@ -290,4 +201,58 @@ void TuringMachine::ReadInstruction()
   m_currentHead.value = m_tape[m_headPos].value;
 
   m_currentBody = m_deltas[m_currentHead];
+}
+
+std::string TuringMachine::ValueToStr(const Value& value)
+{
+  string result;
+
+  switch (value)
+  {
+    case Value::Blank: result = '_'; break;
+    case Value::Zero:  result = '0'; break;
+    case Value::One:   result = '1'; break;
+  };
+
+  return result;
+}
+
+std::string TuringMachine::MovementToStr(const Movement& movement)
+{
+  string result;
+
+  switch (m_currentBody.moveHead)
+  {
+    case Movement::Left:  result = 'L'; break;
+    case Movement::Right: result = 'R'; break;
+  };
+
+  return result;
+}
+
+TuringMachine::Value TuringMachine::CharToValue(char state)
+{
+  Value result;
+
+  switch (state)
+  {
+    case '0': result = Value::Zero; break;
+    case '1': result = Value::One; break;
+    case '_': result = Value::Blank; break;
+  };
+
+  return result;
+}
+
+TuringMachine::Movement TuringMachine::CharToMovement(char movement)
+{
+  Movement result;
+
+  switch (movement)
+  {
+    case 'R': result = Movement::Right; break;
+    case 'L': result = Movement::Left; break;
+  };
+
+  return result;
 }
