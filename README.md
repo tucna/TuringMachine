@@ -18,5 +18,5 @@ The project is built on [tPixelGameEngine](https://github.com/tucna/tPixelGameEn
 
 # Screenshots
 <p align="center">  
-  <img src="doc/1.jpg" width="400px">&nbsp; &nbsp; &nbsp; &nbsp; <img src="doc/2.jpg" width="400px">
+  <img src="doc/1.jpg" width="400px">&nbsp; &nbsp; <img src="doc/2.jpg" width="400px">
 </p>
