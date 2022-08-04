@@ -60,7 +60,8 @@ private:
     Movement moveHead;
   };
 
-  void Step();
+  void ExecuteInstruction();
+  void ReadInstruction();
 
   std::array<Cell, 20> m_tape;
 
@@ -69,6 +70,9 @@ private:
   std::string m_function;
 
   std::map<FunctionHead, FunctionBody> m_deltas;
+
+  FunctionHead m_currentHead;
+  FunctionBody m_currentBody;
 
   uint8_t m_headPos = 0;
 

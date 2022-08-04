@@ -77,6 +77,8 @@ TuringMachine::TuringMachine()
     }
   }
 
+  ReadInstruction();
+
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
@@ -107,6 +109,38 @@ bool TuringMachine::OnUserUpdate(float fElapsedTime)
   static const uint16_t tapeDrawY = ScreenHeight() - cellHeight - 50;
 
   Clear(tDX::BLACK);
+
+  // Function draw TODO function
+  char s;
+
+  switch (m_currentHead.value)
+  {
+    case Value::Blank: s = '_'; break;
+    case Value::Zero:  s = '0'; break;
+    case Value::One:   s = '1'; break;
+  };
+
+  char ns;
+
+  switch (m_currentBody.newValue)
+  {
+    case Value::Blank: ns = '_'; break;
+    case Value::Zero:  ns = '0'; break;
+    case Value::One:   ns = '1'; break;
+  };
+
+  char d;
+
+  switch (m_currentBody.moveHead)
+  {
+    case Movement::Left: d = 'L'; break;
+    case Movement::Right: d = 'R'; break;
+  };
+
+  string functionStr = "d(" + string(1, m_currentHead.state) + ", " + string(1, s) + ") = (" + string(1, m_currentBody.newState) + ", " + string(1, ns) + ", " + string(1, d) + ")";
+
+  m_function = functionStr;
+  // -------------
 
   DrawString(15, 15, "Program");
   DrawString(22, 28, m_programName, tDX::DARK_GREY);
@@ -145,7 +179,22 @@ bool TuringMachine::OnUserUpdate(float fElapsedTime)
 
   if (GetKey(tDX::Key::RIGHT).bPressed) m_headPos++;
   if (GetKey(tDX::Key::LEFT).bPressed) m_headPos--;
-  if (GetKey(tDX::Key::SPACE).bPressed) Step();
+
+  if (GetKey(tDX::Key::SPACE).bPressed && m_currentBody.newState != 'H')
+  {
+    ExecuteInstruction();
+    ReadInstruction();
+  }
+  else if (m_currentBody.newState == 'H')
+  {
+    DrawString(193, 120, "HALT", tDX::DARK_GREEN);
+    DrawRect(130, 105, 156, 36);
+  }
+  else
+  {
+    DrawString(145, 120, "SPACEBAR to step");
+    DrawRect(130, 105, 156, 36);
+  }
 
   const uint16_t headPointPos = tapeDrawX + (cellWidth * m_headPos) + (cellWidth / 2);
 
@@ -172,49 +221,21 @@ bool TuringMachine::OnUserDestroy()
   return true;
 }
 
-void TuringMachine::Step()
+void TuringMachine::ExecuteInstruction()
 {
-  FunctionHead head;
-  head.state = m_currentState;
-  head.value = m_tape[m_headPos].value;
+  m_tape[m_headPos].value = m_currentBody.newValue;
+  m_currentState = m_currentBody.newState;
 
-  FunctionBody body = m_deltas[head];
-
-  m_tape[m_headPos].value = body.newValue;
-  m_currentState = body.newState;
-
-  if (body.moveHead == Movement::Right)
+  if (m_currentBody.moveHead == Movement::Right)
     m_headPos++;
   else
     m_headPos--;
+}
 
-  char s;
+void TuringMachine::ReadInstruction()
+{
+  m_currentHead.state = m_currentState;
+  m_currentHead.value = m_tape[m_headPos].value;
 
-  switch (head.value)
-  {
-    case Value::Blank: s = '_'; break;
-    case Value::Zero:  s = '0'; break;
-    case Value::One:   s = '1'; break;
-  };
-
-  char ns;
-
-  switch (body.newValue)
-  {
-    case Value::Blank: ns = '_'; break;
-    case Value::Zero:  ns = '0'; break;
-    case Value::One:   ns = '1'; break;
-  };
-
-  char d;
-
-  switch (body.moveHead)
-  {
-    case Movement::Left: d = 'L'; break;
-    case Movement::Right: d = 'R'; break;
-  };
-
-  string functionStr = "d(" + string(1, head.state) + ", " + string(1, s) + ") = (" + string(1, body.newState) + ", " + string(1, ns) + ", " + string(1, d) + ")";
-
-  m_function = functionStr;
+  m_currentBody = m_deltas[m_currentHead];
 }
